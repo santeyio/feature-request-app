@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Feature Requests</title>
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
+</head>
+<body>
+
+  
+  <div class="container">
+
+    <div class="row custom-margin-top">
+      <div class="col-md-4">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <br/>
+            <h2>Add a feature request</h2>
+            <br/>
+            <form>
+              <div class="form-group">
+                <label for="titleInput">Title</label>
+                <input data-bind="value: title" class="form-control" id="titleInput" placeholder="Title">
+              </div>
+              <div class="form-group">
+                <label for="descriptionInput">Description</label>
+                <textarea data-bind="value: description" id="description" class="form-control" cols="50" rows="4"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="client">Client</label>
+                <select data-bind="options: clients, 
+                                   value: selected_client,
+                                   optionsCaption: 'Select...'" id="client" class="form-control"></select>
+              </div>
+              <div class="form-group">
+                <label for="client_priority">Client Priority</label>
+                <input data-bind="value: client_priority" id="client_priority" class="form-control" type="" />
+              </div>
+              <div class="form-group">
+                <label for="target_date">Target Date</label>
+                <input data-bind="value: target_date" id="target_date" class="form-control" type="date">
+              </div>
+              <div class="form-group">
+                <label for="product_area">Product Area</label>
+                <select data-bind="options: product_areas,
+                                   value: selected_product_area,
+                                   optionsCaption: 'Select...'" id="product_area" class="form-control"></select>
+              </div>
+              <div class="form-group">
+                <button data-bind="click: save" class="btn btn-default">Submit Request</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-md-offset-1">
+            <br/>
+            <h2>Feature Requests List</h2>
+            <br/>
+          </div>
+        </div>
+      </div>
+    </div> <!-- end row -->
+
+  </div> <!-- end container -->
+
+  <!--<span data-bind="text: post_data()"></span>-->
+  
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+
+
+  <script>
+
+  function FormViewModel(){
+    var self = this;
+
+    self.title = ko.observable("");
+    self.description = ko.observable("");
+    self.clients = ko.observableArray([
+      'Client A',
+      'Client B',
+      'Client C',
+      'Client D',
+    ]);
+    self.selected_client = ko.observable();
+    self.client_priority = ko.observable("");
+    self.target_date = ko.observable("");
+    self.product_areas = ko.observableArray([
+			'Policies',
+      'Billing',
+      'Claims',
+      'Reports'
+		]);
+    self.selected_product_area = ko.observable();
+
+    self.post_data = ko.computed(function(){
+      return {
+        title: self.title(),
+        description: self.description(),
+        client: self.selected_client(),
+        client_priority: self.client_priority(),
+        target_date: self.target_date(),
+        product_area: self.selected_product_area()
+      }
+    });
+
+    self.save = function (){
+      $.ajax("/_add_feature_request", {
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(self.post_data()),
+        complete: function(){alert(JSON.stringify(self.post_data()));},
+        success: function(data,status){
+          alert( data, status);
+        }
+      });
+    }
+  }
+
+  function FeaturesViewModel(){
+  }
+
+  ko.applyBindings(new FormViewModel());
+  ko.applyBindings(new FeaturesViewModel());
+  </script>
+</body>
+</html>
