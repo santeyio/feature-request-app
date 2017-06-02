@@ -25,44 +25,43 @@ def feature_request():
 @app.route("/_add_feature_request", methods=["POST"])
 def add_feature_request():
     feature = parse_feature(request)
-
-    # add to db
+    reorder_client_priorities(feature)
     save_feature_request(feature)
     return json.dumps({'status': 'success'})
 
 
-@app.route("/_get_feature_requests", methods=["POST"])
+@app.route("/_get_feature_requests")
 def get_feature_requests():
     features = Feature.query.all()
-    return json.dumps(to_dict(features))
+    return query_to_json(features)
 
 
 #################
 #    Helpers
 #################
 
-def to_dict(query):
+def query_to_json(query):
     """
-    turns a sqlalchemy query object into a dict
+    turns a sqlalchemy query object into a json string
     :param query: sqlalchemy object
     """
-    features = {}
+    features = []
     for feature in query:
-        features[str(feature.id)] = {
+        features.append({
             'title': feature.title,
             'description': feature.description,
             'client': feature.client,
             'client_priority': feature.client_priority,
             'target_date': str(feature.target_date),
             'product_area': feature.product_area
-        }
-    return features
+        })
+    return json.dumps(features)
             
 
 def parse_feature(request):
     """
     Check data is valid json and turn the date field
-    into a python date object
+    into a python date object and priority into an int
     """
     required_fields = [
         'title',
@@ -80,10 +79,25 @@ def parse_feature(request):
     for field in required_fields:
         if not feature.get(field):
             abort(400, 'whoops, "' + field + '" is required')
-    dateobject = datetime.datetime.strptime(feature['target_date'], '%Y-%m-%d').date()
-    feature['target_date'] = dateobject
+    feature['target_date'] = datetime.datetime.strptime(feature['target_date'], '%Y-%m-%d').date()
+    feature['client_priority'] = int(feature['client_priority'])
     return feature
 
+
+def reorder_client_priorities(feature):
+    client_features = Feature.query.filter_by(client=feature['client'])
+    reorder = False
+    for i in client_features:
+        if i.client_priority == feature['client_priority']:
+            reorder = True
+            priority = feature['client_priority']
+    if reorder:
+        for i in client_features:
+            if i.client_priority >= priority:
+                i.client_priority += 1
+        
+        db.session.commit()
+        
 
 def save_feature_request(feature):
     """

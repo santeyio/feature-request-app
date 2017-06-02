@@ -12,7 +12,7 @@
   <div class="container">
 
     <div class="row custom-margin-top">
-      <div class="col-md-4">
+      <div class="col-md-4" id="add_feature_request">
         <div class="panel panel-default">
           <div class="panel-body">
             <br/>
@@ -53,15 +53,54 @@
             </form>
           </div>
         </div>
-      </div>
+      </div> <!-- end add feature request -->
 
-      <div class="col-md-6 col-md-offset-1">
-            <br/>
-            <h2>Feature Requests List</h2>
-            <br/>
-          </div>
-        </div>
-      </div>
+      <div class="col-md-8" id="feature_request_list">
+          <br/>
+          <h2>Feature Requests List</h2>
+          <br/>
+
+          <button data-bind="click: refresh" class="btn">Refresh</button>
+          <br/>&nbsp;<br/>
+
+          <div data-bind="foreach: feature_requests">
+          <!--<div class="row panel panel-default">-->
+            <!--<div class="panel-body">-->
+              <div class="row">
+                <div class="col-md-8">
+                  <h4><b data-bind="text: title">A Title, and one that is rather lengthy</b></h4><br/>
+                </div>
+                <div class="col-md-4">
+                  <div class="pull-right">
+                    <h4>
+                    <span data-bind="text: client" class="label label-warning">Client A</span>
+                    <span data-bind="text: product_area" class="label label-default">Claims</span>
+                    <span data-bind="text: client_priority" class="label label-info">1</span> 
+                    </h4>
+                  </div>
+                </div>
+              </div><!-- end row -->
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h4 class="panel-title">
+                      Description
+                      <span class="pull-right">Target Date: <em>2017-05-01</em></span>
+                      </h4>
+                    </div>
+                    <div class="panel-body">
+                      <p data-bind="text: description"></p>
+                    </div>
+                  </div>
+                </div>
+              </div><!-- end row -->
+            <!--</div>-->
+          <!--</div>-->
+          </div><!-- end foreach parent div -->
+
+      </div> <!-- end feature request list -->
+
     </div> <!-- end row -->
 
   </div> <!-- end container -->
@@ -113,19 +152,29 @@
         method: "POST",
         contentType: "application/json",
         data: JSON.stringify(self.post_data()),
-        complete: function(){alert(JSON.stringify(self.post_data()));},
         success: function(data,status){
-          alert( data, status);
+          self.refresh();
         }
+      });
+    }
+
+    self.feature_requests = ko.observableArray([]);
+
+    self.refresh = function(){
+      $.ajax("/_get_feature_requests",{
+        dataType: 'json',
+        success: self.feature_requests
       });
     }
   }
 
   function FeaturesViewModel(){
+    var self = this;
   }
 
+  //ko.applyBindings(new FeaturesViewModel(), document.getElementById('feature_request_list'));
+  //ko.applyBindings(new FormViewModel(), document.getElementById('add_feature_request'));
   ko.applyBindings(new FormViewModel());
-  ko.applyBindings(new FeaturesViewModel());
   </script>
 </body>
 </html>

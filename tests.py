@@ -5,7 +5,7 @@ from datetime import date
 
 from flask_testing import TestCase
 from werkzeug.exceptions import BadRequest
-from featurerequests import db, app, parse_feature, save_feature_request, to_dict
+from featurerequests import db, app, parse_feature, save_feature_request, query_to_json, reorder_client_priorities
 from models import Feature
 
 
@@ -78,6 +78,26 @@ class FeatureRequestTestCase(TestCase):
                                     content_type='application/json')
         self.assertIn("is required", response.data)
 
+    def test_add_feature_request_ajax_method_reorders_items_correctly(self):
+        self.add_features_helper()
+        initial_feature_priority = Feature.query.filter_by(title="A Title")
+        self.assertEqual(initial_feature_priority[0].client_priority, 1)
+        feature = {
+            'title': 'A New Title',
+            'description': 'Some new lengthy description',
+            'client': 'Client A',
+            'client_priority': 1,
+            'target_date': '2017-05-01',
+            'product_area': 'Policies',
+        }
+        response = self.client.post('/_add_feature_request',
+                                    data=json.dumps(feature),
+                                    content_type='application/json')
+        self.assertIn("success", response.data)
+        updated_feature_priority = Feature.query.filter_by(title="A Title")
+        self.assertEqual(initial_feature_priority[0].client_priority, 2)
+        
+
     def test_if_parse_feature_returns_a_date_object_for_target_date(self):
         featuremock = mock.Mock()
         featuremock.get_json = mock.Mock(return_value={
@@ -111,11 +131,28 @@ class FeatureRequestTestCase(TestCase):
             'product_area': 'Policies',
         }
 
-    def test_if_to_dict_returns_dict(self):
+    def test_if_query_to_json_returns_valid_json(self):
         self.add_features_helper()
         features = Feature.query.all()
-        fdict = to_dict(features)
-        self.assertEqual(type(fdict), type({}))
+        fdict = query_to_json(features)
+        assert json.loads(fdict)
+
+    def test_if_reorder_client_priorities_reorders_clients(self):
+        self.add_features_helper()
+        initial_feature_priority = Feature.query.filter_by(title="A Title")
+        self.assertEqual(initial_feature_priority[0].client_priority, 1)
+        new_feature = {
+            'title': 'A New Title',
+            'description': 'Some new lengthy description',
+            'client': 'Client A',
+            'client_priority': 1,
+            'target_date': '2017-05-01',
+            'product_area': 'Policies',
+        }
+        reorder_client_priorities(new_feature)
+        initial_feature_priority = Feature.query.filter_by(title="A Title")
+        self.assertEqual(initial_feature_priority[0].client_priority, 2)
+        
 
     def add_features_helper(self):
         feature1 = Feature(
@@ -126,7 +163,16 @@ class FeatureRequestTestCase(TestCase):
             target_date=date.today(),
             product_area='Policies',
         )
+        feature2 = Feature(
+            title='Another Title',
+            description='Some other lengthy description',
+            client='Client A',
+            client_priority=2,
+            target_date=date.today(),
+            product_area='Claims',
+        )
         db.session.add(feature1)
+        db.session.add(feature2)
         db.session.commit()
         
 

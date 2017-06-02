@@ -1,6 +1,7 @@
 import uuid
 
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy_utils import UUIDType
 
 
 db = SQLAlchemy()
@@ -9,7 +10,7 @@ class Feature(db.Model):
 
     __tablename__ = 'feature'
 
-    id = db.Column(db.String, primary_key=True, default=str(uuid.uuid4()))
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     title = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
     client = db.Column(db.String, nullable=False)
