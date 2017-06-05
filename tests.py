@@ -1,4 +1,5 @@
 import unittest
+import uuid
 import mock
 import json
 from datetime import date
@@ -53,18 +54,18 @@ class FeatureRequestTestCase(TestCase):
             'target_date': '2017-05-01',
             'product_area': 'Policies',
         }
-        response = self.client.post('/_add_feature_request',
+        response = self.client.post('/api/v1/feature',
                                     data=json.dumps(feature),
                                     content_type='application/json')
         self.assertEqual(json.loads(response.data), {"status":"success"})
         
-    def test_add_feature_request_ajax_method_returns_error_on_invalid_json(self):
-        response = self.client.post('/_add_feature_request',
+    def test_add_feature_api_endpoint_POST_returns_error_on_invalid_json(self):
+        response = self.client.post('/api/v1/feature',
                                     data='invalid json',
                                     content_type='application/json')
         self.assertIn("400", response.data)
 
-    def test_add_feature_request_ajax_method_returns_error_on_missing_item(self):
+    def test_add_feature_api_endpoint_POST_returns_error_on_missing_item(self):
         feature = {
             'wrongtitle': 'A Title',
             'wrongdescription': 'Some lengthy description',
@@ -73,12 +74,12 @@ class FeatureRequestTestCase(TestCase):
             'wrongtarget_date': '2017-05-01',
             'wrongproduct_area': 'Policies',
         }
-        response = self.client.post('/_add_feature_request',
+        response = self.client.post('/api/v1/feature',
                                     data=json.dumps(feature),
                                     content_type='application/json')
         self.assertIn("is required", response.data)
 
-    def test_add_feature_request_ajax_method_reorders_items_correctly(self):
+    def test_add_feature_api_endpoint_POST_reorders_items_correctly(self):
         self.add_features_helper()
         initial_feature_priority = Feature.query.filter_by(title="A Title")
         self.assertEqual(initial_feature_priority[0].client_priority, 1)
@@ -90,13 +91,47 @@ class FeatureRequestTestCase(TestCase):
             'target_date': '2017-05-01',
             'product_area': 'Policies',
         }
-        response = self.client.post('/_add_feature_request',
+        response = self.client.post('/api/v1/feature',
                                     data=json.dumps(feature),
                                     content_type='application/json')
         self.assertIn("success", response.data)
         updated_feature_priority = Feature.query.filter_by(title="A Title")
         self.assertEqual(initial_feature_priority[0].client_priority, 2)
-        
+
+    def test_add_feature_api_endpoint_DELETE_deletes_items(self):
+        self.add_features_helper()
+        feature = Feature.query.filter_by(title="A Title")
+        f = feature[0]
+        response = self.client.delete('/api/v1/feature/' + str(feature[0].id),
+                                      content_type='application/json')
+        feature = Feature.query.filter_by(title="A Title")
+        self.assertFalse(feature.count())
+
+    def test_add_feature_api_endpoint_GET_returns_valid_json(self):
+        self.add_features_helper()
+        response = self.client.get('/api/v1/feature',
+                                   content_type='application/json')
+        decoded_json = json.loads(response.data)
+        self.assertEqual(type(decoded_json), type([]))
+
+    def test_add_feature_api_endpoint_PUT_updates_object(self):
+        self.add_features_helper()
+        feature = Feature.query.filter_by(title="A Title")
+        fid = str(feature[0].id)
+        updates = {
+            'title': 'A Title',
+            'description': 'updated description',
+            'client': 'Client A',
+            'client_priority': 1,
+            'target_date': '2017-05-01',
+            'product_area': 'Claims',
+        }
+        response = self.client.put('/api/v1/feature/' + fid,
+                                   data=json.dumps(updates),
+                                   content_type='application/json')
+        feature_updated = Feature.query.filter_by(title="A Title")
+        self.assertEqual(feature_updated[0].description, updates['description'])
+         
 
     def test_if_parse_feature_returns_a_date_object_for_target_date(self):
         featuremock = mock.Mock()
@@ -120,6 +155,32 @@ class FeatureRequestTestCase(TestCase):
         except BadRequest as e:
             error_message = e.description
         self.assertIn('invalid json', error_message)
+
+    # def test_if_parse_feature_returns_id_when_passed_id_and_no_id_when_not_passed_id(self):
+        # featuremock = mock.Mock()
+        # featuremock.get_json = mock.Mock(return_value={
+            # 'title': 'A Title',
+            # 'description': 'Some lengthy description',
+            # 'client': 'Client A',
+            # 'client_priority': 1,
+            # 'target_date': '2017-05-01',
+            # 'product_area': 'Policies',
+        # })
+        # parsed_no_id = parse_feature(featuremock)
+        # self.assertFalse(parsed_no_id.get('id'))
+        # featuremock_with_id = mock.Mock()
+        # featuremock_with_id.get_json = mock.Mock(return_value={
+            # 'id': str(uuid.uuid4()),
+            # 'title': 'A Title',
+            # 'description': 'Some lengthy description',
+            # 'client': 'Client A',
+            # 'client_priority': 1,
+            # 'target_date': '2017-05-01',
+            # 'product_area': 'Policies',
+        # })
+        # parsed_with_id = parse_feature(featuremock_with_id)
+        # self.assertTrue(parsed_with_id.get('id'))
+        
 
     def test_if_save_feature_request_saves_to_db(self):
         feature = {

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Feature Requests</title>
   <link rel="stylesheet" href="/static/css/styles.css" />
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
@@ -57,18 +58,30 @@
 
       <div class="col-md-8" id="feature_request_list">
           <br/>
+          <span class="pull-right">
+            Key:&nbsp;&nbsp; 
+            <span class="label label-warning">Client</span>
+            <span class="label label-default">Product Area</span>
+            <span class="label label-info">Feature Priority</span>
+          </span>
           <h2>Feature Requests List</h2>
           <br/>
 
           <button data-bind="click: refresh" class="btn">Refresh</button>
           <br/>&nbsp;<br/>
 
-          <div data-bind="foreach: feature_requests">
-          <!--<div class="row panel panel-default">-->
-            <!--<div class="panel-body">-->
+          <div data-bind="template: { foreach: feature_requests,
+                                      beforeRemove: delete_feature_request,
+                                      afterAdd: show_feature_request }"> <!-- begin foreach div -->
+            <div> <!-- test wrapper -->
+            <div class="view-wrapper"> <!-- begin feature request wrapper -->
               <div class="row">
                 <div class="col-md-8">
-                  <h4><b data-bind="text: title">A Title, and one that is rather lengthy</b></h4><br/>
+                  <h4>
+                    <button data-bind="click: $parent.edit_feature, enable: $parent.edit" class="btn btn-default">Edit</button>&nbsp;&nbsp;
+                    <b data-bind="text: title">A Title, and one that is rather lengthy</b>
+                  </h4>
+                  <br/>
                 </div>
                 <div class="col-md-4">
                   <div class="pull-right">
@@ -95,8 +108,50 @@
                   </div>
                 </div>
               </div><!-- end row -->
-            <!--</div>-->
-          <!--</div>-->
+            </div> <!-- end feature request wrapper -->
+            <div style="display:none;" class="edit-wrapper"> <!-- begin edit row wrapper -->
+              <div class="row"> <!-- begin edit row -->
+                <div class="col-md-6">
+                  <h4>
+                    <button data-bind="click: $parent.delete_feature, attr: {'id': id}" class="btn btn-danger">Delete</button>&nbsp;
+                    <button data-bind="click: $parent.update_feature, attr: {'id': id, 'data-index': $index}" class="btn btn-default">Save</button>&nbsp;
+                    <button data-bind="click: $parent.cancel_edit" class="btn btn-default">Cancel</button><br/>&nbsp;<br/>
+                    <input data-bind="value: title" class="form-control"/>
+                  </h4>
+                  <br/>
+                </div>
+                <div class="col-md-6">
+                  <div class="pull-right">
+                    <h4>
+                    <select data-bind="options: $parent.clients, 
+                                       value: client" id="client" class="form-control"></select>
+                    <select data-bind="options: $parent.product_areas,
+                                       value: product_area" id="product_area" class="form-control"></select>
+                    <input data-bind="value: client_priority" class="form-control"/>
+                    <input data-bind="value: target_date" id="target_date" class="form-control" type="date">
+                    </h4>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h4 class="panel-title">
+                      Description
+                      <div class="pull-right">
+                      </div>
+                      </h4>
+                    </div>
+                    <div class="panel-body">
+                      <textarea class="form-control" cols=50 rows=6 data-bind="value: description">
+                      </textarea>
+                    </div>
+                  </div>
+                </div>
+              </div> <!-- end edit row -->
+            </div> <!-- end edit row wrapper -->
+            </div> <!-- end test wrapper -->
           </div><!-- end foreach parent div -->
 
       </div> <!-- end feature request list -->
@@ -110,71 +165,7 @@
   <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
-
-
-  <script>
-
-  function FormViewModel(){
-    var self = this;
-
-    self.title = ko.observable("");
-    self.description = ko.observable("");
-    self.clients = ko.observableArray([
-      'Client A',
-      'Client B',
-      'Client C',
-      'Client D',
-    ]);
-    self.selected_client = ko.observable();
-    self.client_priority = ko.observable("");
-    self.target_date = ko.observable("");
-    self.product_areas = ko.observableArray([
-			'Policies',
-      'Billing',
-      'Claims',
-      'Reports'
-		]);
-    self.selected_product_area = ko.observable();
-
-    self.post_data = ko.computed(function(){
-      return {
-        title: self.title(),
-        description: self.description(),
-        client: self.selected_client(),
-        client_priority: self.client_priority(),
-        target_date: self.target_date(),
-        product_area: self.selected_product_area()
-      }
-    });
-
-    self.save = function (){
-      $.ajax("/_add_feature_request", {
-        method: "POST",
-        contentType: "application/json",
-        data: JSON.stringify(self.post_data()),
-        success: function(data,status){
-          self.refresh();
-        }
-      });
-    }
-
-    self.feature_requests = ko.observableArray([]);
-
-    self.refresh = function(){
-      $.ajax("/_get_feature_requests",{
-        dataType: 'json',
-        success: self.feature_requests
-      });
-    }
-  }
-
-  function FeaturesViewModel(){
-    var self = this;
-  }
-
-  //ko.applyBindings(new FeaturesViewModel(), document.getElementById('feature_request_list'));
-  //ko.applyBindings(new FormViewModel(), document.getElementById('add_feature_request'));
-  ko.applyBindings(new FormViewModel());
-  </script>
+  <script src="/static/js/knockout.mapping.js"></script>
+  <script src="/static/js/main.js"></script>
 </body>
 </html>

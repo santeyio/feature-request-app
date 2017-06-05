@@ -1,4 +1,5 @@
 import json
+import uuid
 import datetime
 
 from flask import Flask, render_template, request, abort 
@@ -22,23 +23,53 @@ def feature_request():
     return render_template("feature-request.html")     
 
 
-@app.route("/_add_feature_request", methods=["POST"])
-def add_feature_request():
-    feature = parse_feature(request)
-    reorder_client_priorities(feature)
-    save_feature_request(feature)
-    return json.dumps({'status': 'success'})
+@app.route("/api/v1/feature", methods=["GET", "POST", "PUT", "DELETE"])
+@app.route("/api/v1/feature/<feature_id>", methods=["GET", "POST", "PUT", "DELETE"])
+def feature_api_endpoint(feature_id=None):
 
+    if request.method == "GET":
+        features = Feature.query.all()
+        return query_to_json(features)
 
-@app.route("/_get_feature_requests")
-def get_feature_requests():
-    features = Feature.query.all()
-    return query_to_json(features)
+    if request.method == "POST":
+        feature = parse_feature(request)
+        reorder_client_priorities(feature)
+        save_feature_request(feature)
+        return json.dumps({'status': 'success'})
+
+    if request.method == "PUT":
+        updates = parse_feature(request)
+        reorder_client_priorities(updates)
+        feature = get_feature_by_id(feature_id)
+        for key, val in updates.iteritems(): setattr(feature, key, val)
+        db.session.commit()
+        return json.dumps({'status': 'success'})
+
+    if request.method == "DELETE":
+        feature = get_feature_by_id(feature_id)
+        db.session.delete(feature)
+        db.session.commit()
+        return json.dumps({'status': 'success'})
 
 
 #################
 #    Helpers
 #################
+
+def get_feature_by_id(feature_id):
+    """
+    makes sure a feature id is supplied and returns a feature object
+    :param feature_id: a feature id as a string
+    :return: a feature class model object
+    """
+    if not feature_id:
+        abort(400, 'feature id required')
+    feature_id = uuid.UUID(feature_id)
+    feature = Feature.query.get(feature_id)
+    if not feature:
+        abort(400, "couldn't find the requested id")
+    return feature
+
 
 def query_to_json(query):
     """
@@ -48,6 +79,7 @@ def query_to_json(query):
     features = []
     for feature in query:
         features.append({
+            'id': str(feature.id),
             'title': feature.title,
             'description': feature.description,
             'client': feature.client,
@@ -62,6 +94,8 @@ def parse_feature(request):
     """
     Check data is valid json and turn the date field
     into a python date object and priority into an int
+    :param request: a flask request object
+    :return: feature dict
     """
     required_fields = [
         'title',
@@ -116,4 +150,4 @@ def save_feature_request(feature):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0')
