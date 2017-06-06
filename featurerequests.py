@@ -23,13 +23,17 @@ def feature_request():
     return render_template("feature-request.html")     
 
 
-@app.route("/api/v1/feature", methods=["GET", "POST", "PUT", "DELETE"])
-@app.route("/api/v1/feature/<feature_id>", methods=["GET", "POST", "PUT", "DELETE"])
+@app.route("/api/v1/feature", methods=["GET", "POST"])
+@app.route("/api/v1/feature/<feature_id>", methods=["GET", "PUT", "DELETE"])
 def feature_api_endpoint(feature_id=None):
 
     if request.method == "GET":
-        features = Feature.query.all()
-        return query_to_json(features)
+        if feature_id:
+            feature = get_feature_by_id(feature_id)
+            return query_to_json(feature)
+        else:
+            features = Feature.query.all()
+            return query_to_json(features)
 
     if request.method == "POST":
         feature = parse_feature(request)
