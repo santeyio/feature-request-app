@@ -95,9 +95,17 @@
           </span>
           <h2>Feature Requests List</h2>
           <br/>
-
+          <div class="form-group col-md-6">
+            <form class="form-inline">
+            <label>Sort By:</label>
+            <select data-bind="foreach: sort_options, value: current_sort" class="form-control">
+              <option data-bind="value: value, text: title"></option>
+            </select>
+            <select data-bind="options: sort_options_ad, value: sort_asc_desc" class="form-control">
+            </select>
+            </form>
+          </div>
           <button data-bind="click: filter_visible_toggle, text: filter_button_text" class="btn btn-default"></button>
-          &nbsp;&nbsp;&nbsp;&nbsp;
           <br/>&nbsp;<br/>
           <div data-bind="visible: filter_visible" class="row col-md-12">
             <div class="row col-md-12">

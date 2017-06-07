@@ -130,6 +130,17 @@ function FormViewModel(){
   self.edit = ko.observable(true);
   self.selected_client_filter = ko.observable();
   self.selected_product_area_filter = ko.observable();
+  self.current_sort = ko.observable('Client Priority');
+  self.sort_asc_desc = ko.observable('Ascending');
+  self.sort_options_ad = ko.observableArray([
+    'Ascending',
+    'Descending'
+  ]);
+  self.sort_options = ko.observableArray([
+    { title: 'Client Priority', value: 'client_priority'},
+    { title: 'Target Date', value: 'target_date'},
+    { title: 'Title', value: 'title'}
+  ]);
   self.filter_clients = ko.observableArray([
     'Client A',
     'Client B',
@@ -229,7 +240,13 @@ function FormViewModel(){
           return true;
         }
       });
-      self.filtered_product_areas.sort(function(l,r){return l.client_priority() < r.client_priority() ? -1 : 1});
+      self.filtered_product_areas.sort(function(l,r){
+        if (self.sort_asc_desc() == "Ascending"){
+          return l[self.current_sort()]() < r[self.current_sort()]() ? -1 : 1
+        } else {
+          return l[self.current_sort()]() < r[self.current_sort()]() ? 1 : -1
+        }
+      });
       return self.filtered_product_areas;
     } else {
       console.log(self.filtered_product_areas);
