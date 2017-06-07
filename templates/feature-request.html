@@ -117,7 +117,7 @@
                                    value: filter_by_client" class="form-control"></select>
               </div>
               <div class="col-md-3">
-                <button data-bind="enable: filter_by_client_bool" class="btn btn-default" data-toggle="modal" data-target="#reordermodal">Reorder Priorities</button>
+                <button data-bind="enable: filter_by_client_bool, click: set_order_to_priority()" class="btn btn-default" data-toggle="modal" data-target="#reordermodal">Reorder Priorities</button>
               </div>
             </div>
             <div class="row col-md-12">

@@ -224,6 +224,9 @@ function FormViewModel(){
   self.filter_by_client_bool = ko.observable(null);
   self.filter_by_product_area = ko.observable(null);
   self.filter_by_product_area_bool = ko.observable(null);
+  self.set_order_to_priority = function(){
+    self.current_sort('client_priority');
+  }
   self.filtered_feature_requests = ko.computed(function(){
     if (self.edit()){
       self.filtered_clients = self.feature_requests().filter(function(feature){
