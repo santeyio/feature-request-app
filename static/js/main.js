@@ -115,13 +115,15 @@ function FormViewModel(){
 
   // -- Bindings
   
+  self.filter_button_text = ko.observable("Show Filters");
   self.filter_visible = ko.observable(null);
   self.filter_visible_toggle = function(){
-    console.log('something');
     if (self.filter_visible()){
       self.filter_visible(null);
+      self.filter_button_text("Show filters");
     } else {
       self.filter_visible(true);
+      self.filter_button_text("Hide filters");
     }
   }
   self.feature_requests = ko.observableArray([]);
@@ -175,7 +177,7 @@ function FormViewModel(){
     var target = event.target;
     fid = $(target).attr('id');
     feature_index = $(target).data('index');
-    update_data = ko.mapping.toJS(self.feature_requests()[feature_index]);
+    update_data = ko.mapping.toJS(self.filtered_feature_requests()[feature_index]);
     $.ajax("/api/v1/feature/"+fid,{
       method: 'PUT',
       data: JSON.stringify(update_data),
@@ -185,7 +187,7 @@ function FormViewModel(){
         self.refresh();
         self.edit(true);
       }
-  });
+    });
   }
   self.delete_feature = function(data, event){
     var target = event.target;
@@ -211,29 +213,49 @@ function FormViewModel(){
   self.filter_by_client_bool = ko.observable(null);
   self.filter_by_product_area = ko.observable(null);
   self.filter_by_product_area_bool = ko.observable(null);
-  self.filter = ko.observable(true);
   self.filtered_feature_requests = ko.computed(function(){
-    var filter = self.filter();
-    if (!filter){
-      return self.feature_requests();
-    } else {
-      filtered_clients = self.feature_requests().filter(function(feature){
+    if (self.edit()){
+      self.filtered_clients = self.feature_requests().filter(function(feature){
         if (self.filter_by_client_bool()){
           return feature['client']() == self.filter_by_client();
         } else {
           return true;
         }
       });
-      filtered_product_areas = filtered_clients.filter(function(feature){
+      self.filtered_product_areas = self.filtered_clients.filter(function(feature){
         if (self.filter_by_product_area_bool()){
           return feature['product_area']() ==  self.filter_by_product_area();
         } else {
           return true;
         }
       });
-      return filtered_product_areas;
+      self.filtered_product_areas.sort(function(l,r){return l.client_priority() < r.client_priority() ? -1 : 1});
+      return self.filtered_product_areas;
+    } else {
+      console.log(self.filtered_product_areas);
+      return self.filtered_product_areas;
     }
   });
+  self.reorder_priorities = function(){
+    $('#reorder-parent > li').each(function(index){
+      feature_index = $(this).data('index');
+      update_data = ko.mapping.toJS(self.filtered_feature_requests()[feature_index]);
+      update_data.client_priority = index+1;
+      fid = $(this).data('id');
+      $.ajax("/api/v1/feature/"+fid,{
+        method: 'PUT',
+        data: JSON.stringify(update_data),
+        dataType: 'json',
+        contentType: 'application/json',
+        success: function(){
+          self.refresh();
+          self.edit(true);
+        }
+      });
+    });
+  }
 }
 
 ko.applyBindings(new FormViewModel());
+
+dragula([document.querySelector('.dragula-container')]);

@@ -5,12 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Feature Requests</title>
   <link rel="stylesheet" href="/static/css/styles.css" />
+  <link rel="stylesheet" href="/static/css/dragula.min.css" />
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
 </head>
 <body>
 
   
   <div class="container">
+	
+		<!-- Modal -->
+		<div class="modal fade" id="reordermodal" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title">Drag to reorder</h4>
+					</div>
+					<div class="modal-body">
+            <ul data-bind="foreach: filtered_feature_requests" class="list-group dragula-container" id="reorder-parent">
+              <li data-bind="attr: {'data-id': id, 'data-index': $index}" class="list-group-item">
+                <b data-bind="text: title"></b>
+                <span data-bind="text: client_priority" class="pull-right"></span>
+              </li>
+						</ul>
+					</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button data-bind="click: reorder_priorities" type="button" class="btn btn-primary">Save changes</button>
+          </div>
+				</div><!-- /.modal-content -->
+			</div><!-- /.modal-dialog -->
+		</div><!-- /.modal --> 
 
     <div class="row custom-margin-top">
       <div class="col-md-4" id="add_feature_request">
@@ -71,16 +96,20 @@
           <h2>Feature Requests List</h2>
           <br/>
 
-          <button data-bind="click: filter_visible_toggle" class="btn btn-default">Filters</button>
+          <button data-bind="click: filter_visible_toggle, text: filter_button_text" class="btn btn-default"></button>
+          &nbsp;&nbsp;&nbsp;&nbsp;
           <br/>&nbsp;<br/>
           <div data-bind="visible: filter_visible" class="row col-md-12">
             <div class="row col-md-12">
               <div class="col-md-3">
-              <input data-bind="checked: filter_by_client_bool" type="checkbox" />&nbsp;&nbsp;By Client
+                <input data-bind="checked: filter_by_client_bool" type="checkbox" />&nbsp;&nbsp;By Client
               </div>
               <div class="col-md-4">
-              <select data-bind="options: filter_clients, 
-                                 value: filter_by_client" class="form-control"></select>
+                <select data-bind="options: filter_clients, 
+                                   value: filter_by_client" class="form-control"></select>
+              </div>
+              <div class="col-md-3">
+                <button data-bind="enable: filter_by_client_bool" class="btn btn-default" data-toggle="modal" data-target="#reordermodal">Reorder Priorities</button>
               </div>
             </div>
             <div class="row col-md-12">
@@ -94,88 +123,88 @@
             </div>
           </div>
           <br/>&nbsp;<br/>
-
           <div data-bind="template: { foreach: filtered_feature_requests,
                                       beforeRemove: delete_feature_request,
                                       afterAdd: show_feature_request }"> <!-- begin foreach div -->
             <div> <!-- test wrapper -->
-            <div class="view-wrapper"> <!-- begin feature request wrapper -->
-              <div class="row">
-                <div class="col-md-8">
-                  <h4>
-                    <button data-bind="click: $parent.edit_feature, enable: $parent.edit" class="btn btn-default">Edit</button>&nbsp;&nbsp;
-                    <b data-bind="text: title">A Title, and one that is rather lengthy</b>
-                  </h4>
-                  <br/>
-                </div>
-                <div class="col-md-4">
-                  <div class="pull-right">
+              <div class="view-wrapper"> <!-- begin feature request wrapper -->
+                <hr/>
+                <div class="row">
+                  <div class="col-md-8">
                     <h4>
-                    <span data-bind="text: client" class="label label-warning">Client A</span>
-                    <span data-bind="text: product_area" class="label label-default">Claims</span>
-                    <span data-bind="text: client_priority" class="label label-info">1</span> 
+                      <button data-bind="click: $parent.edit_feature, enable: $parent.edit" class="btn btn-default">Edit</button>&nbsp;&nbsp;
+                      <b data-bind="text: title">A Title, and one that is rather lengthy</b>
                     </h4>
+                    <br/>
                   </div>
-                </div>
-              </div><!-- end row -->
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="panel panel-default">
-                    <div class="panel-heading">
-                      <h4 class="panel-title">
-                      Description
-                      <span class="pull-right">Target Date: <em data-bind="text: target_date">2017-05-01</em></span>
+                  <div class="col-md-4">
+                    <div class="pull-right">
+                      <h4>
+                      <span data-bind="text: client" class="label label-warning">Client A</span>
+                      <span data-bind="text: product_area" class="label label-default">Claims</span>
+                      <span data-bind="text: client_priority" class="label label-info">1</span> 
                       </h4>
                     </div>
-                    <div class="panel-body">
-                      <p data-bind="text: description"></p>
-                    </div>
                   </div>
-                </div>
-              </div><!-- end row -->
-            </div> <!-- end feature request wrapper -->
-            <div style="display:none;" class="edit-wrapper"> <!-- begin edit row wrapper -->
-              <div class="row"> <!-- begin edit row -->
-                <div class="col-md-6">
-                  <h4>
-                    <button data-bind="click: $parent.delete_feature, attr: {'id': id}" class="btn btn-danger">Delete</button>&nbsp;
-                    <button data-bind="click: $parent.update_feature, attr: {'id': id, 'data-index': $index}" class="btn btn-default">Save</button>&nbsp;
-                    <button data-bind="click: $parent.cancel_edit" class="btn btn-default">Cancel</button><br/>&nbsp;<br/>
-                    <input data-bind="value: title" class="form-control"/>
-                  </h4>
-                  <br/>
-                </div>
-                <div class="col-md-6">
-                  <div class="pull-right">
-                    <h4>
-                    <select data-bind="options: $parent.clients, 
-                                       value: client" id="client" class="form-control"></select>
-                    <select data-bind="options: $parent.product_areas,
-                                       value: product_area" id="product_area" class="form-control"></select>
-                    <input data-bind="value: client_priority" class="form-control"/>
-                    <input data-bind="value: target_date" id="target_date" class="form-control" type="date">
-                    </h4>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="panel panel-default">
-                    <div class="panel-heading">
-                      <h4 class="panel-title">
-                      Description
-                      <div class="pull-right">
+                </div><!-- end row -->
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="panel panel-default">
+                      <div class="panel-heading">
+                        <h4 class="panel-title">
+                        Description
+                        <span class="pull-right">Target Date: <em data-bind="text: target_date">2017-05-01</em></span>
+                        </h4>
                       </div>
-                      </h4>
+                      <div class="panel-body">
+                        <p data-bind="text: description"></p>
+                      </div>
                     </div>
-                    <div class="panel-body">
-                      <textarea class="form-control" cols=50 rows=6 data-bind="value: description">
-                      </textarea>
+                  </div>
+                </div><!-- end row -->
+              </div> <!-- end feature request wrapper -->
+              <div style="display:none;" class="edit-wrapper"> <!-- begin edit row wrapper -->
+                <div class="row"> <!-- begin edit row -->
+                  <div class="col-md-6">
+                    <h4>
+                      <button data-bind="click: $parent.delete_feature, attr: {'id': id}" class="btn btn-danger">Delete</button>&nbsp;
+                      <button data-bind="click: $parent.update_feature, attr: {'id': id, 'data-index': $index}" class="btn btn-default">Save</button>&nbsp;
+                      <button data-bind="click: $parent.cancel_edit" class="btn btn-default">Cancel</button><br/>&nbsp;<br/>
+                      <input data-bind="value: title" class="form-control"/>
+                    </h4>
+                    <br/>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="pull-right">
+                      <h4>
+                      <select data-bind="options: $parent.clients, 
+                                         value: client" id="client" class="form-control"></select>
+                      <select data-bind="options: $parent.product_areas,
+                                         value: product_area" id="product_area" class="form-control"></select>
+                      <input data-bind="value: client_priority" class="form-control"/>
+                      <input data-bind="value: target_date" id="target_date" class="form-control" type="date">
+                      </h4>
                     </div>
                   </div>
                 </div>
-              </div> <!-- end edit row -->
-            </div> <!-- end edit row wrapper -->
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="panel panel-default">
+                      <div class="panel-heading">
+                        <h4 class="panel-title">
+                        Description
+                        <div class="pull-right">
+                        </div>
+                        </h4>
+                      </div>
+                      <div class="panel-body">
+                        <textarea class="form-control" cols=50 rows=6 data-bind="value: description">
+                        </textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div> <!-- end edit row -->
+              </div> <!-- end edit row wrapper -->
             </div> <!-- end test wrapper -->
           </div><!-- end foreach parent div -->
 
@@ -192,6 +221,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
   <script src="/static/js/knockout.mapping.js"></script>
   <script src="/static/js/knockout.validation.min.js"></script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js'></script>
   <script src="/static/js/main.js"></script>
 </body>
 </html>

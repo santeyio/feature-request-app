@@ -125,7 +125,9 @@ def parse_feature(request):
 def reorder_client_priorities(feature):
     client_features = Feature.query.filter_by(client=feature['client'])
     reorder = False
+    priority_list = []
     for i in client_features:
+        priority_list.append(i.client_priority)
         if i.client_priority == feature['client_priority']:
             reorder = True
             priority = feature['client_priority']
