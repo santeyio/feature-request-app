@@ -214,10 +214,6 @@ class FeatureRequestTestCase(TestCase):
         initial_feature_priority = Feature.query.filter_by(title="A Title")
         self.assertEqual(initial_feature_priority[0].client_priority, 2)
 
-    def test_if_buildbot_fails_on_test_fail(self):
-        self.assertTrue(False)
-        
-
     def add_features_helper(self):
         feature1 = Feature(
             title='A Title',
