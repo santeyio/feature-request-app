@@ -168,7 +168,6 @@ function FormViewModel(){
     });
   }
   self.refresh() // refresh on load
-  //setTimeout(function(){console.log(self.feature_requests());},3000);
 
 
   // -- Edit / Update / Delete
@@ -252,7 +251,6 @@ function FormViewModel(){
       });
       return self.filtered_product_areas;
     } else {
-      console.log(self.filtered_product_areas);
       return self.filtered_product_areas;
     }
   });
