@@ -43,3 +43,7 @@ You can run the app with gunicorn for production, but for running it locally jus
 ```
 
 And you should be able to access the site at http://127.0.0.1:5000
+
+# Note on the deployment_script.sh
+
+You may notice that there is a bash script included in the project -- I'm using buildbot to watch my repo for Continuous Integration and if commits are pushed to master and the tests pass, then this script is triggered by buildbot to install the newest version of the master branch to the [live example](http://featurerequests.calebhayashida.com/feature-request).
