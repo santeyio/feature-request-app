@@ -156,32 +156,6 @@ class FeatureRequestTestCase(TestCase):
             error_message = e.description
         self.assertIn('invalid json', error_message)
 
-    # def test_if_parse_feature_returns_id_when_passed_id_and_no_id_when_not_passed_id(self):
-        # featuremock = mock.Mock()
-        # featuremock.get_json = mock.Mock(return_value={
-            # 'title': 'A Title',
-            # 'description': 'Some lengthy description',
-            # 'client': 'Client A',
-            # 'client_priority': 1,
-            # 'target_date': '2017-05-01',
-            # 'product_area': 'Policies',
-        # })
-        # parsed_no_id = parse_feature(featuremock)
-        # self.assertFalse(parsed_no_id.get('id'))
-        # featuremock_with_id = mock.Mock()
-        # featuremock_with_id.get_json = mock.Mock(return_value={
-            # 'id': str(uuid.uuid4()),
-            # 'title': 'A Title',
-            # 'description': 'Some lengthy description',
-            # 'client': 'Client A',
-            # 'client_priority': 1,
-            # 'target_date': '2017-05-01',
-            # 'product_area': 'Policies',
-        # })
-        # parsed_with_id = parse_feature(featuremock_with_id)
-        # self.assertTrue(parsed_with_id.get('id'))
-        
-
     def test_if_save_feature_request_saves_to_db(self):
         feature = {
             'title': 'A Title',

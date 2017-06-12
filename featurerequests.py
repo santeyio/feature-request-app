@@ -2,7 +2,7 @@ import json
 import uuid
 import datetime
 
-from flask import Flask, render_template, request, abort 
+from flask import Flask, render_template, request, abort
 from werkzeug.exceptions import BadRequest
 
 from models import db, Feature
@@ -14,18 +14,19 @@ db.init_app(app)
 
 
 @app.route("/")
-def hello():
+def index():
     return render_template("index.html")
 
 
 @app.route("/feature-request")
 def feature_request():
-    return render_template("feature-request.html")     
+    return render_template("feature-request.html")
 
 
 @app.route("/api/v1/feature", methods=["GET", "POST"])
 @app.route("/api/v1/feature/<feature_id>", methods=["GET", "PUT", "DELETE"])
 def feature_api_endpoint(feature_id=None):
+    """ REST API endpoint for AJAX """
 
     if request.method == "GET":
         if feature_id:
@@ -45,7 +46,8 @@ def feature_api_endpoint(feature_id=None):
         updates = parse_feature(request)
         reorder_client_priorities(updates)
         feature = get_feature_by_id(feature_id)
-        for key, val in updates.iteritems(): setattr(feature, key, val)
+        for key, val in updates.iteritems():
+            setattr(feature, key, val)
         db.session.commit()
         return json.dumps({'status': 'success'})
 
@@ -92,7 +94,7 @@ def query_to_json(query):
             'product_area': feature.product_area
         })
     return json.dumps(features)
-            
+
 
 def parse_feature(request):
     """
@@ -110,8 +112,9 @@ def parse_feature(request):
         'product_area'
     ]
     try:
-        feature = request.get_json() 
-        if not feature: raise BadRequest
+        feature = request.get_json()
+        if not feature:
+            raise BadRequest
     except BadRequest:
         abort(400, 'invalid json')
     for field in required_fields:
@@ -123,6 +126,11 @@ def parse_feature(request):
 
 
 def reorder_client_priorities(feature):
+    """
+    Reorders client priorities within the database if the given feature
+    has a client_id that conflicts with an existing one.
+    :param feature: a feature as a dict
+    """
     client_features = Feature.query.filter_by(client=feature['client'])
     reorder = False
     priority_list = []
@@ -135,9 +143,9 @@ def reorder_client_priorities(feature):
         for i in client_features:
             if i.client_priority >= priority:
                 i.client_priority += 1
-        
+
         db.session.commit()
-        
+
 
 def save_feature_request(feature):
     """
@@ -156,11 +164,12 @@ def save_feature_request(feature):
 
 
 def create_db():
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../test.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    db.init_app(app)
-    db.create_all(app=app)
+    """ Helper to create a local test database """
+    new_app = Flask(__name__)
+    new_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../test.db'
+    new_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(new_app)
+    db.create_all(app=new_app)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
