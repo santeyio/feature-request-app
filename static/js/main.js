@@ -210,6 +210,7 @@ function FormViewModel(){
         self.edit(true);
       }
     });
+    self.refresh();
   }
   self.show_feature_request = function(elem){
     if (elem.nodeType === 1) $(elem).find('.view-wrapper').hide().slideDown();
