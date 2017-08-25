@@ -2,6 +2,8 @@
 
 This is a solution to a programming challenge. You can find a live example of the code here http://featurerequests.calebhayashida.com/feature-request
 
+(Sidenote, if you want to take a look at my CI setup just shoot me an email and I can give you creds to check it out). 
+
 # Installation
 
 Create a new virtualenv and activate it
