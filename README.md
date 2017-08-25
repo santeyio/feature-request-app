@@ -1,6 +1,6 @@
 # What is this?
 
-This is a solution to a programming challenge, specified [here](https://github.com/IntuitiveWebSolutions/EngineeringMidLevel). You can find a live example of the code here http://featurerequests.calebhayashida.com/feature-request
+This is a solution to a programming challenge. You can find a live example of the code here http://featurerequests.calebhayashida.com/feature-request
 
 # Installation
 
