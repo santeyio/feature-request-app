@@ -103,6 +103,12 @@ def parse_feature(request):
     :param request: a flask request object
     :return: feature dict
     """
+    try:
+        feature = request.get_json()
+        if not feature:
+            raise BadRequest
+    except BadRequest:
+        abort(400, 'invalid json')
     required_fields = [
         'title',
         'description',
@@ -111,12 +117,6 @@ def parse_feature(request):
         'target_date',
         'product_area'
     ]
-    try:
-        feature = request.get_json()
-        if not feature:
-            raise BadRequest
-    except BadRequest:
-        abort(400, 'invalid json')
     for field in required_fields:
         if not feature.get(field):
             abort(400, 'whoops, "' + field + '" is required')
